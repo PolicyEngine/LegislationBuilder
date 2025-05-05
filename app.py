@@ -35,39 +35,59 @@ def format_bill_text_html(bill_text):
     for line in lines:
         # Skip empty lines for line numbering but keep them in the output
         if line.strip():
-            # Process special markdown formatting in the line
-            # Handle additions (green underlined text)
             processed_line = line
             
-            # First check for markdown underline format: __new text__
-            while '__' in processed_line:
-                start_idx = processed_line.find('__')
-                if start_idx != -1:
-                    end_idx = processed_line.find('__', start_idx + 2)
-                    if end_idx != -1:
-                        addition_text = processed_line[start_idx + 2:end_idx]
-                        processed_line = (
-                            processed_line[:start_idx] + 
-                            '<span class="bill-addition">' + addition_text + '</span>' + 
-                            processed_line[end_idx + 2:]
-                        )
+            # Handle various ways deletions might be formatted
+            # Pattern 1: "striking "X"" - Standard legislative language
+            if "striking " in processed_line and '"' in processed_line:
+                parts = processed_line.split('striking "')
+                if len(parts) > 1:
+                    for i in range(1, len(parts)):
+                        if '"' in parts[i]:
+                            end_quote_pos = parts[i].find('"')
+                            if end_quote_pos > 0:
+                                deleted_text = parts[i][:end_quote_pos]
+                                parts[i] = f'<span style="color:#990000; background-color:#ffe6e6; text-decoration:line-through;">"{deleted_text}"</span>' + parts[i][end_quote_pos + 1:]
+                    processed_line = 'striking '.join(parts)
+            
+            # Pattern 2: [~~deletion~~] - Our markdown format
+            while "[~~" in processed_line and "~~]" in processed_line:
+                start_pos = processed_line.find("[~~")
+                if start_pos >= 0:
+                    end_pos = processed_line.find("~~]", start_pos)
+                    if end_pos >= 0:
+                        content = processed_line[start_pos + 3:end_pos]
+                        processed_line = processed_line[:start_pos] + \
+                                        f'<span style="color:#990000; background-color:#ffe6e6; text-decoration:line-through;">{content}</span>' + \
+                                        processed_line[end_pos + 3:]
                     else:
                         break
                 else:
                     break
-            
-            # Then check for deletions format: [~~deleted text~~]
-            while '[~~' in processed_line and '~~]' in processed_line:
-                start_idx = processed_line.find('[~~')
-                if start_idx != -1:
-                    end_idx = processed_line.find('~~]', start_idx)
-                    if end_idx != -1:
-                        deletion_text = processed_line[start_idx + 3:end_idx]
-                        processed_line = (
-                            processed_line[:start_idx] + 
-                            '<span class="bill-deletion">' + deletion_text + '</span>' + 
-                            processed_line[end_idx + 3:]
-                        )
+                    
+            # Handle additions
+            # Pattern 1: "inserting "X"" - Standard legislative language
+            if "inserting " in processed_line and '"' in processed_line:
+                parts = processed_line.split('inserting "')
+                if len(parts) > 1:
+                    for i in range(1, len(parts)):
+                        if '"' in parts[i]:
+                            end_quote_pos = parts[i].find('"')
+                            if end_quote_pos > 0:
+                                inserted_text = parts[i][:end_quote_pos]
+                                parts[i] = f'<span style="color:#006600; background-color:#e6ffe6; text-decoration:underline; font-weight:bold;">"{inserted_text}"</span>' + parts[i][end_quote_pos + 1:]
+                    processed_line = 'inserting '.join(parts)
+                    
+            # Pattern 2: __addition__ - Our markdown format
+            while "__" in processed_line:
+                start_pos = processed_line.find("__")
+                if start_pos >= 0:
+                    end_pos = processed_line.find("__", start_pos + 2)
+                    if end_pos >= 0:
+                        content = processed_line[start_pos + 2:end_pos]
+                        processed_line = processed_line[:start_pos] + \
+                                        f'<span style="color:#006600; background-color:#e6ffe6; text-decoration:underline; font-weight:bold;">{content}</span>' + \
+                                        processed_line[end_pos + 2:]
                     else:
                         break
                 else:
@@ -75,18 +95,23 @@ def format_bill_text_html(bill_text):
             
             # Check for section headers and apply special styling
             if 'SECTION' in processed_line and ':' in processed_line:
-                html_lines.append(f'<div class="bill-line section-header"><span class="line-number">{line_number}</span><span class="line-content">{processed_line}</span></div>')
+                html_lines.append(f'<div style="display:flex; line-height:1.6; margin-bottom:2px; font-weight:bold; margin-top:15px; margin-bottom:10px;"><span style="color:#888; text-align:right; padding-right:10px; width:30px; flex-shrink:0; user-select:none;">{line_number}</span><span style="flex-grow:1; white-space:pre-wrap; word-wrap:break-word;">{processed_line}</span></div>')
             # Check for enacting clause
             elif 'Be it enacted' in processed_line:
-                html_lines.append(f'<div class="bill-line enacting-clause"><span class="line-number">{line_number}</span><span class="line-content">{processed_line}</span></div>')
+                html_lines.append(f'<div style="display:flex; line-height:1.6; margin-bottom:2px; font-style:italic; margin:15px 0;"><span style="color:#888; text-align:right; padding-right:10px; width:30px; flex-shrink:0; user-select:none;">{line_number}</span><span style="flex-grow:1; white-space:pre-wrap; word-wrap:break-word;">{processed_line}</span></div>')
             else:
-                html_lines.append(f'<div class="bill-line"><span class="line-number">{line_number}</span><span class="line-content">{processed_line}</span></div>')
+                html_lines.append(f'<div style="display:flex; line-height:1.6; margin-bottom:2px;"><span style="color:#888; text-align:right; padding-right:10px; width:30px; flex-shrink:0; user-select:none;">{line_number}</span><span style="flex-grow:1; white-space:pre-wrap; word-wrap:break-word;">{processed_line}</span></div>')
+            
             line_number += 1
         else:
-            html_lines.append(f'<div class="bill-line"><span class="line-number"></span><span class="line-content">&nbsp;</span></div>')
+            html_lines.append(f'<div style="display:flex; line-height:1.6; margin-bottom:2px;"><span style="color:#888; text-align:right; padding-right:10px; width:30px; flex-shrink:0; user-select:none;"></span><span style="flex-grow:1; white-space:pre-wrap; word-wrap:break-word;">&nbsp;</span></div>')
     
     # Join the lines and wrap in a container
-    html_content = '<div class="bill-container">' + '\n'.join(html_lines) + '</div>'
+    html_content = f'''
+    <div style="font-family:'Courier New', monospace; background-color:#f9f9f9; border:1px solid #ddd; border-radius:4px; padding:20px; margin:10px 0; box-shadow:0 2px 4px rgba(0,0,0,0.1); max-height:600px; overflow-y:auto; position:relative;">
+        {''.join(html_lines)}
+    </div>
+    '''
     
     return html_content
 
@@ -173,7 +198,7 @@ bill_css = """
 """
 
 # ------- Configuration -------
-MODEL_NAME = "gpt-4o"  # OpenAI reasoning model
+MODEL_NAME = "o4-mini"  # OpenAI reasoning model
 
 # Define enhanced system prompt for bill generation
 BILL_SYSTEM_PROMPT = """
