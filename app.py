@@ -254,13 +254,25 @@ with tab1:
         ```python
         from policyengine_us import Microsimulation
         from policyengine_core.reforms import Reform
+
         reform = Reform.from_dict({
-          "gov.irs.credits.ctc.amount.base[0].amount": {
-            "2025-01-01.2100-12-31": 2500
-          }
+        "gov.irs.credits.eitc.eligibility.age.min": {
+            "2025-01-01.2100-12-31": 19
+        },
+        "gov.irs.credits.eitc.eligibility.age.min_student": {
+            "2025-01-01.2100-12-31": 19
+        },
+        "gov.irs.credits.eitc.phase_out.max_investment_income": {
+            "2025-01-01.2100-12-31": 20000
+        }
         }, country_id="us")
+
+
         baseline = Microsimulation()
         reformed = Microsimulation(reform=reform)
+        baseline_income = baseline.calculate("household_net_income", period=2025)
+        reformed_income = reformed.calculate("household_net_income", period=2025)
+        difference_income = reformed_income - baseline_income
         ```
         """
     )
