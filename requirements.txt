@@ -1,0 +1,14 @@
+
+# Core dependencies
+streamlit>=1.27.0
+openai>=1.6.0
+python-dotenv>=1.0.0
+
+# For PolicyEngine integration
+# Note: These may need to be adjusted based on your specific PolicyEngine setup
+# policyengine_us>=0.202.0  # Uncomment if using PolicyEngine US directly
+# policyengine_core>=1.0.0  # Uncomment if using PolicyEngine Core directly
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
