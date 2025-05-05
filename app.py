@@ -249,34 +249,33 @@ with tab1:
         """
         Enter PolicyEngine Python code and click **Generate Bill** to convert it to both plain English
         and formal legislative text.
-        
-        Example format:
-        ```python
-        from policyengine_us import Microsimulation
-        from policyengine_core.reforms import Reform
-
-        reform = Reform.from_dict({
-        "gov.irs.credits.eitc.eligibility.age.min": {
-            "2025-01-01.2100-12-31": 19
-        },
-        "gov.irs.credits.eitc.eligibility.age.min_student": {
-            "2025-01-01.2100-12-31": 19
-        },
-        "gov.irs.credits.eitc.phase_out.max_investment_income": {
-            "2025-01-01.2100-12-31": 20000
-        }
-        }, country_id="us")
-
-
-        baseline = Microsimulation()
-        reformed = Microsimulation(reform=reform)
-        baseline_income = baseline.calculate("household_net_income", period=2025)
-        reformed_income = reformed.calculate("household_net_income", period=2025)
-        difference_income = reformed_income - baseline_income
-        ```
         """
     )
-    
+    with st.expander("Example format:"):
+        st.code("""
+    from policyengine_us import Microsimulation
+    from policyengine_core.reforms import Reform
+
+    reform = Reform.from_dict({
+    "gov.irs.credits.eitc.eligibility.age.min": {
+        "2025-01-01.2100-12-31": 19
+    },
+    "gov.irs.credits.eitc.eligibility.age.min_student": {
+        "2025-01-01.2100-12-31": 19
+    },
+    "gov.irs.credits.eitc.phase_out.max_investment_income": {
+        "2025-01-01.2100-12-31": 20000
+    }
+    }, country_id="us")
+
+
+    baseline = Microsimulation()
+    reformed = Microsimulation(reform=reform)
+    baseline_income = baseline.calculate("household_net_income", period=2025)
+    reformed_income = reformed.calculate("household_net_income", period=2025)
+    difference_income = reformed_income - baseline_income
+    """
+)
     policy_code = st.text_area(
         "PolicyEngine Python Code",
         height=200,
