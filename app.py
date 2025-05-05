@@ -36,19 +36,51 @@ def format_bill_text_html(bill_text):
         # Skip empty lines for line numbering but keep them in the output
         if line.strip():
             # Process special markdown formatting in the line
-            line = line.replace('__', '<span class="bill-addition">')
-            line = line.replace('__', '</span>')
-            line = line.replace('[~~', '<span class="bill-deletion">')
-            line = line.replace('~~]', '</span>')
+            # Handle additions (green underlined text)
+            processed_line = line
+            
+            # First check for markdown underline format: __new text__
+            while '__' in processed_line:
+                start_idx = processed_line.find('__')
+                if start_idx != -1:
+                    end_idx = processed_line.find('__', start_idx + 2)
+                    if end_idx != -1:
+                        addition_text = processed_line[start_idx + 2:end_idx]
+                        processed_line = (
+                            processed_line[:start_idx] + 
+                            '<span class="bill-addition">' + addition_text + '</span>' + 
+                            processed_line[end_idx + 2:]
+                        )
+                    else:
+                        break
+                else:
+                    break
+            
+            # Then check for deletions format: [~~deleted text~~]
+            while '[~~' in processed_line and '~~]' in processed_line:
+                start_idx = processed_line.find('[~~')
+                if start_idx != -1:
+                    end_idx = processed_line.find('~~]', start_idx)
+                    if end_idx != -1:
+                        deletion_text = processed_line[start_idx + 3:end_idx]
+                        processed_line = (
+                            processed_line[:start_idx] + 
+                            '<span class="bill-deletion">' + deletion_text + '</span>' + 
+                            processed_line[end_idx + 3:]
+                        )
+                    else:
+                        break
+                else:
+                    break
             
             # Check for section headers and apply special styling
-            if 'SECTION' in line and ':' in line:
-                html_lines.append(f'<div class="bill-line section-header"><span class="line-number">{line_number}</span><span class="line-content">{line}</span></div>')
+            if 'SECTION' in processed_line and ':' in processed_line:
+                html_lines.append(f'<div class="bill-line section-header"><span class="line-number">{line_number}</span><span class="line-content">{processed_line}</span></div>')
             # Check for enacting clause
-            elif 'Be it enacted' in line:
-                html_lines.append(f'<div class="bill-line enacting-clause"><span class="line-number">{line_number}</span><span class="line-content">{line}</span></div>')
+            elif 'Be it enacted' in processed_line:
+                html_lines.append(f'<div class="bill-line enacting-clause"><span class="line-number">{line_number}</span><span class="line-content">{processed_line}</span></div>')
             else:
-                html_lines.append(f'<div class="bill-line"><span class="line-number">{line_number}</span><span class="line-content">{line}</span></div>')
+                html_lines.append(f'<div class="bill-line"><span class="line-number">{line_number}</span><span class="line-content">{processed_line}</span></div>')
             line_number += 1
         else:
             html_lines.append(f'<div class="bill-line"><span class="line-number"></span><span class="line-content">&nbsp;</span></div>')
