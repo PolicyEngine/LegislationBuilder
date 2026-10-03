@@ -1,6 +1,6 @@
 # legislation_drafter_app.py
 """
-Streamlit app: Draft legislation from PolicyEngine code or plain‑English policy instructions using OpenAI o3.
+Streamlit app: Draft legislation from PolicyEngine code or plain‑English policy instructions using the OpenAI model set in MODEL_NAME.
 
 How to run locally:
 1. pip install streamlit openai python-dotenv policyengine_us pyyaml
@@ -477,6 +477,6 @@ with tab2:
 st.markdown("---")
 
 st.markdown(
-    "<small>© 2025 • Powered by OpenAI GPT-4o • Built with Streamlit</small>",
+    f"<small>© 2025 • Powered by OpenAI {MODEL_NAME} • Built with Streamlit</small>",
     unsafe_allow_html=True,
 )
